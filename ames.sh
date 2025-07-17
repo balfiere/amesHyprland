@@ -218,7 +218,7 @@ update_sentence() {
         "params": {
             "note": {
                 "id": <id>,
-                "fields": { "<SENTENCE_FIELD>": "<sentence>" }
+                "fields": { "<SENTENCE_FIELD>": "<sentence>" , "<SENTENCE_FIELD_2>": "<sentence2>" }
             }
         }
     }'
@@ -228,15 +228,14 @@ update_sentence() {
     local -r sentence="$(escape "$1")"
     update_request="${update_request/<sentence>/$sentence}"
 
-    safe_request "$update_request"
-
     if [[ -n "$SENTENCE_FIELD_2" ]]; then
 
         update_request="${update_request/<SENTENCE_FIELD_2>/$SENTENCE_FIELD_2}"
         update_request="${update_request/<sentence2>/$sentence}"
-        safe_request "$update_request"
 
     fi
+
+    safe_request "$update_request"
 }
 
 update_img() {
