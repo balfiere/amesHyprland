@@ -18,11 +18,7 @@ set -euo pipefail
 AUDIO_FIELD="audio"
 SCREENSHOT_FIELD="image"
 SENTENCE_FIELD="Sentence"
-# leave OUTPUT_MONITOR blank to autoselect a monitor.
-OUTPUT_MONITOR=""
-AUDIO_BITRATE="64k"
 AUDIO_FORMAT="opus"
-AUDIO_VOLUME="1"
 MINIMUM_DURATION="0"
 IMAGE_FORMAT="webp"
 # -2 to calculate dimension while preserving aspect ratio.
@@ -369,24 +365,9 @@ current_time() {
 }
 
 record_function() {
-    # function to record desktop audio.
-    # $1 is the name of the output monitor.
-    # $2 is the output file name.
-
-    # the last function called here MUST be the call to
-    # ffmpeg or some other program that does recording.
-    # when -r is called again, the pid of the last function call is killed.
-    local -r output="$1"
-    local -r audio_file="$2"
-    ffmpeg -nostdin \
-        -y \
-        -loglevel error \
-        -f pulse \
-        -i "$output" \
-        -ac 2 \
-        -af "volume=${AUDIO_VOLUME},silenceremove=1:0:-50dB" \
-        -ab "$AUDIO_BITRATE" \
-        "$audio_file" 1> /dev/null &
+    local -r audio_file="$1"
+    # We need the & at the end otherwise it hangs in the pw-record
+    pw-record -P '{ stream.capture.sink=true }' "$audio_file" &
 }
 
 record_start() {
@@ -395,15 +376,7 @@ record_start() {
                                "/tmp/ffmpeg-recording.XXXXXX.$AUDIO_FORMAT")"
     echo "$audio_file" >"$recording_toggle"
 
-    if [ "$OUTPUT_MONITOR" == "" ]; then
-        local -r output="$(LC_ALL=C pactl info \
-                               | grep 'Default Sink' \
-                               | awk '{print $NF ".monitor"}')"
-    else
-        local -r output="$OUTPUT_MONITOR"
-    fi
-
-    record_function "$output" "$audio_file"
+    record_function "$audio_file"
     echo "$!" >> "$recording_toggle"
 
     current_time >> "$recording_toggle"
@@ -418,6 +391,7 @@ record_end() {
     local -r start_time="$(sed -n "3p" "$recording_toggle")"
     local -r duration="$(($(current_time) - start_time))"
 
+    echo "The pid is: ${pid}"
     if [ "$duration" -le "$MINIMUM_DURATION" ]; then
         sleep "$((MINIMUM_DURATION - duration))e-3"
     fi
@@ -425,19 +399,11 @@ record_end() {
     rm "$recording_toggle"
     kill -15 "$pid"
 
+    wait "$pid" || true
+
     while [ "$(du "$audio_file" | awk '{ print $1 }')" -eq 0 ]; do
         true
     done
-
-    local -r audio_backup="/tmp/ffmpeg-recording-audio-backup.$AUDIO_FORMAT"
-    cp "$audio_file" "$audio_backup"
-    ffmpeg -nostdin \
-           -y \
-           -loglevel error \
-           -i "$audio_backup" \
-           -c copy \
-           -to "${duration}ms" \
-           "$audio_file" 1> /dev/null
 
     store_file "${audio_file}"
     update_sound "$(basename -- "$audio_file")"
