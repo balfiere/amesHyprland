@@ -28,6 +28,7 @@ IMAGE_FORMAT="webp"
 # -2 to calculate dimension while preserving aspect ratio.
 IMAGE_WIDTH="-2"
 IMAGE_HEIGHT="300"
+WAYBAR_SIGNAL=8 # for integration with waybar
 
 get_config_dir() {
     # get the configuration directory
@@ -451,8 +452,13 @@ record() {
 
     if [[ ! -f /tmp/ffmpeg-recording-audio ]]; then
         record_start
+
+        # Send signal to waybar
+        pkill -RTMIN+$WAYBAR_SIGNAL waybar
     else
         record_end
+        
+        pkill -RTMIN+$WAYBAR_SIGNAL waybar
     fi
 }
 
