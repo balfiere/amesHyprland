@@ -288,7 +288,7 @@ encode_img() {
 
 get_selection() {
     # get a region of the screen for future screenshotting.
-    slop
+    slurp
 }
 
 take_screenshot_region() {
@@ -297,14 +297,14 @@ take_screenshot_region() {
     # $2 is the output file name.
     local -r geom="$1"
     local -r path="$2"
-    maim --hidecursor "$path" -g "$geom"
+    grim -g "$geom" "$path"
 }
 
 take_screenshot_window() {
     # function to take a screenshot of the current window.
     # $1 is the output file name.
     local -r path="$1"
-    maim --hidecursor "$path" -i "$(xdotool getactivewindow)"
+    grimblast save active -o "$path"
 }
 
 screenshot() {
@@ -315,6 +315,7 @@ screenshot() {
     local -r base_path="$(basename -- "$path" | cut -d "." -f-2)"
     local -r converted_path="/tmp/$base_path.$IMAGE_FORMAT"
 
+    sleep 0.5 # prevents grim closing animation from appearing in screenshot
     take_screenshot_region "$geom" "$path"
     encode_img "$path" "$converted_path"
 
