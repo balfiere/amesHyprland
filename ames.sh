@@ -46,7 +46,7 @@ usage() {
     echo "-r: record audio toggle"
     echo "-s: interactive screenshot"
     echo "-a: screenshot same region again (defaults to -s if no region)"
-    echo "-w: screenshot currently active window (xdotool)"
+    echo "-w: screenshot currently active window (grimblast)"
     echo "-c: export copied text (contents of the CLIPBOARD selection)"
 }
 
