@@ -457,28 +457,14 @@ record() {
         pkill -RTMIN+$WAYBAR_SIGNAL waybar
     else
         record_end
-        
-        pkill -RTMIN+$WAYBAR_SIGNAL waybar
-    fi
-}
 
-copied_text() {
-    # get the contents of the clipboard.
-    if command -v xclip &> /dev/null
-    then
-        xclip -o -selection clipboard
-    elif command -v xsel &> /dev/null
-    then
-        xsel -b
-    else
-        echo "Couldn't find xclip or xsel." >&2
-        exit 1
+        pkill -RTMIN+$WAYBAR_SIGNAL waybar
     fi
 }
 
 clipboard() {
     # get the current clipboard, and add this text to the last Anki card.
-    local -r sentence="$(copied_text)"
+    local -r sentence="$(wl-paste)"
     update_sentence "${sentence}"
 
     notify_sentence_add
