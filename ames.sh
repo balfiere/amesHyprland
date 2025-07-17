@@ -18,6 +18,7 @@ set -euo pipefail
 AUDIO_FIELD="audio"
 SCREENSHOT_FIELD="image"
 SENTENCE_FIELD="Sentence"
+SENTENCE_FIELD_2=""
 AUDIO_FORMAT="opus"
 MINIMUM_DURATION="0"
 IMAGE_FORMAT="webp"
@@ -228,6 +229,14 @@ update_sentence() {
     update_request="${update_request/<sentence>/$sentence}"
 
     safe_request "$update_request"
+
+    if [[ -n "$SENTENCE_FIELD_2" ]]; then
+
+        update_request="${update_request/<SENTENCE_FIELD_2>/$SENTENCE_FIELD_2}"
+        update_request="${update_request/<sentence2>/$sentence}"
+        safe_request "$update_request"
+
+    fi
 }
 
 update_img() {
